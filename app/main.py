@@ -2,6 +2,7 @@ from pathlib import Path
 
 from scanner import scan_folder
 from normalizer import enrich_file_record
+from exporters.csv_exporter import export_to_csv
 
 
 def main() -> None:
@@ -16,10 +17,21 @@ def main() -> None:
 
     print(f"\nFound {len(files)} supported file(s).\n")
 
-    for file_path in files[:20]:
+    records = []
+
+    for file_path in files:
         record = enrich_file_record(file_path)
-        print(record)
-        print("-" * 60)
+        records.append(record)
+
+    output_path = Path("output/metadata_index.csv")
+
+    try:
+        export_to_csv(records, output_path)
+    except ValueError as error:
+        print(f"Error: {error}")
+        return
+
+    print(f"CSV export complete: {output_path.resolve()}")
 
 
 if __name__ == "__main__":
