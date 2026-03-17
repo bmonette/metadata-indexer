@@ -23,6 +23,7 @@ env/
 *.log
 out/
 reports/
+app/output/
 
 # =========================
 # Test / example outputs
