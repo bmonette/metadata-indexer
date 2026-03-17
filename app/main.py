@@ -3,6 +3,7 @@ from pathlib import Path
 from scanner import scan_folder
 from file_info import build_file_record
 from extractors.image_extractor import extract_image_metadata
+from extractors.audio_extractor import extract_audio_metadata
 
 
 def main() -> None:
@@ -17,18 +18,26 @@ def main() -> None:
 
     print(f"\nFound {len(files)} supported file(s).\n")
 
-    for file_path in files[:10]:
+    for file_path in files[:20]:
         record = build_file_record(file_path)
 
         if record.file_type == "image":
             image_data = extract_image_metadata(file_path)
-
             record.image_width = image_data["image_width"]
             record.image_height = image_data["image_height"]
             record.image_format = image_data["image_format"]
             record.exif_make = image_data["exif_make"]
             record.exif_model = image_data["exif_model"]
             record.exif_datetime = image_data["exif_datetime"]
+
+        elif record.file_type == "audio":
+            audio_data = extract_audio_metadata(file_path)
+            record.audio_title = audio_data["audio_title"]
+            record.audio_artist = audio_data["audio_artist"]
+            record.audio_album = audio_data["audio_album"]
+            record.audio_duration_seconds = audio_data["audio_duration_seconds"]
+            record.audio_bitrate = audio_data["audio_bitrate"]
+            record.audio_sample_rate = audio_data["audio_sample_rate"]
 
         print(record)
         print("-" * 60)
