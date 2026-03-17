@@ -7,6 +7,50 @@ from openpyxl.utils import get_column_letter
 from models import FileRecord
 
 
+ALWAYS_INCLUDE_COLUMNS = [
+    "file_name",
+    "extension",
+    "file_type",
+    "full_path",
+    "parent_folder",
+    "size_bytes",
+    "size_kb",
+    "created_time",
+    "modified_time",
+    "scan_status",
+    "error_message",
+]
+
+
+def get_used_columns(record_dicts: list[dict]) -> list[str]:
+    """
+    Return a list of columns to export.
+    Core columns are always included.
+    Metadata columns are only included if at least one record
+    contains a non-empty value for that column.
+    """
+    if not record_dicts:
+        return ALWAYS_INCLUDE_COLUMNS.copy()
+
+    all_columns = list(record_dicts[0].keys())
+    used_columns = []
+
+    for column in all_columns:
+        if column in ALWAYS_INCLUDE_COLUMNS:
+            used_columns.append(column)
+            continue
+
+        has_value = any(
+            record.get(column) not in (None, "", [])
+            for record in record_dicts
+        )
+
+        if has_value:
+            used_columns.append(column)
+
+    return used_columns
+
+
 def auto_adjust_column_width(worksheet) -> None:
     """
     Adjust column widths based on max content length.
@@ -16,10 +60,10 @@ def auto_adjust_column_width(worksheet) -> None:
         column_letter = get_column_letter(column_cells[0].column)
 
         for cell in column_cells:
-            if cell.value:
+            if cell.value is not None:
                 max_length = max(max_length, len(str(cell.value)))
 
-        adjusted_width = min(max_length + 2, 60)  # cap width
+        adjusted_width = min(max_length + 2, 60)
         worksheet.column_dimensions[column_letter].width = adjusted_width
 
 
@@ -32,23 +76,20 @@ def export_to_excel(records: list[FileRecord], output_path: Path) -> None:
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    record_dicts = [asdict(record) for record in records]
+    headers = get_used_columns(record_dicts)
+
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Metadata Index"
 
-    # Headers
-    headers = list(asdict(records[0]).keys())
     sheet.append(headers)
 
-    # Data rows
-    for record in records:
-        row = list(asdict(record).values())
+    for record_dict in record_dicts:
+        row = [record_dict.get(header) for header in headers]
         sheet.append(row)
 
-    # Freeze header row
     sheet.freeze_panes = "A2"
-
-    # Auto-size columns
     auto_adjust_column_width(sheet)
 
     workbook.save(output_path)
