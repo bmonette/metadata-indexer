@@ -4,6 +4,7 @@ from scanner import scan_folder
 from file_info import build_file_record
 from extractors.image_extractor import extract_image_metadata
 from extractors.audio_extractor import extract_audio_metadata
+from extractors.pdf_extractor import extract_pdf_metadata
 
 
 def main() -> None:
@@ -38,6 +39,14 @@ def main() -> None:
             record.audio_duration_seconds = audio_data["audio_duration_seconds"]
             record.audio_bitrate = audio_data["audio_bitrate"]
             record.audio_sample_rate = audio_data["audio_sample_rate"]
+
+        elif record.file_type == "pdf":
+            pdf_data = extract_pdf_metadata(file_path)
+            record.pdf_title = pdf_data["pdf_title"]
+            record.pdf_author = pdf_data["pdf_author"]
+            record.pdf_subject = pdf_data["pdf_subject"]
+            record.pdf_pages = pdf_data["pdf_pages"]
+            record.pdf_text_snippet = pdf_data["pdf_text_snippet"]
 
         print(record)
         print("-" * 60)
