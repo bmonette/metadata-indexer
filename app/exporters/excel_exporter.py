@@ -5,6 +5,7 @@ from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 
 from models import FileRecord
+from reporting import generate_summary
 
 
 ALWAYS_INCLUDE_COLUMNS = [
@@ -68,9 +69,6 @@ def auto_adjust_column_width(worksheet) -> None:
 
 
 def export_to_excel(records: list[FileRecord], output_path: Path) -> None:
-    """
-    Export FileRecord objects to an Excel file.
-    """
     if not records:
         raise ValueError("No records to export.")
 
@@ -80,6 +78,10 @@ def export_to_excel(records: list[FileRecord], output_path: Path) -> None:
     headers = get_used_columns(record_dicts)
 
     workbook = Workbook()
+
+    # =========================
+    # Sheet 1: Metadata Index
+    # =========================
     sheet = workbook.active
     sheet.title = "Metadata Index"
 
@@ -91,5 +93,28 @@ def export_to_excel(records: list[FileRecord], output_path: Path) -> None:
 
     sheet.freeze_panes = "A2"
     auto_adjust_column_width(sheet)
+
+    # =========================
+    # Sheet 2: Summary
+    # =========================
+    summary = generate_summary(records)
+
+    summary_sheet = workbook.create_sheet(title="Summary")
+
+    summary_sheet.append(["Metric", "Value"])
+
+    summary_sheet.append(["Total Files", summary["total_files"]])
+    summary_sheet.append(["Successful Files", summary["success_count"]])
+    summary_sheet.append(["Errored Files", summary["error_count"]])
+    summary_sheet.append(["Total Size (KB)", summary["total_size_kb"]])
+
+    summary_sheet.append([])
+
+    summary_sheet.append(["File Type", "Count"])
+
+    for file_type, count in summary["file_types"].items():
+        summary_sheet.append([file_type, count])
+
+    auto_adjust_column_width(summary_sheet)
 
     workbook.save(output_path)
