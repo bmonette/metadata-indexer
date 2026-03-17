@@ -3,6 +3,7 @@ from pathlib import Path
 from scanner import scan_folder
 from normalizer import enrich_file_record
 from exporters.csv_exporter import export_to_csv
+from exporters.excel_exporter import export_to_excel
 
 
 def main() -> None:
@@ -23,15 +24,18 @@ def main() -> None:
         record = enrich_file_record(file_path)
         records.append(record)
 
-    output_path = Path("output/metadata_index.csv")
+    csv_output = Path("output/metadata_index.csv")
+    excel_output = Path("output/metadata_index.xlsx")
 
     try:
-        export_to_csv(records, output_path)
+        export_to_csv(records, csv_output)
+        export_to_excel(records, excel_output)
     except ValueError as error:
         print(f"Error: {error}")
         return
 
-    print(f"CSV export complete: {output_path.resolve()}")
+    print(f"CSV export complete: {csv_output.resolve()}")
+    print(f"Excel export complete: {excel_output.resolve()}")
 
 
 if __name__ == "__main__":
