@@ -1,5 +1,8 @@
 from pathlib import Path
+
 from scanner import scan_folder
+from file_info import build_file_record
+from extractors.image_extractor import extract_image_metadata
 
 
 def main() -> None:
@@ -12,10 +15,13 @@ def main() -> None:
         print(f"Error: {error}")
         return
 
-    print(f"\nFound {len(files)} supported file(s):\n")
+    print(f"\nFound {len(files)} supported file(s).\n")
+
     for file_path in files:
-        print(file_path)
+        record = build_file_record(file_path)
 
-
-if __name__ == "__main__":
-    main()
+        if record.file_type == "image":
+            image_data = extract_image_metadata(file_path)
+            print(file_path.name)
+            print(image_data)
+            print("-" * 60)
