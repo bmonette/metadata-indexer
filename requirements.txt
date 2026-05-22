@@ -1,0 +1,6 @@
+et_xmlfile==2.0.0
+mutagen==1.47.0
+openpyxl==3.1.5
+pillow==12.1.1
+pypdf==6.9.1
+typing_extensions==4.15.0
